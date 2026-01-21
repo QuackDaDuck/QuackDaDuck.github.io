@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>🦆 HTML Executor 🦆</title>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+        <script>let ToInject = {Script: ["window.addEventListener('beforeunload', AntiClose);function AntiClose(event) {event.preventDefault();event.returnValue = 'Anti Close Popup';}"], Style: []}</script>
+
+        <script>
+            window.addEventListener('beforeunload', AntiClose);
+            
+            function AntiClose(event) {
+                event.preventDefault();
+                event.returnValue = 'Anti Close Popup'; 
+            }
+        </script>
+
+
+        <style>
+            body {
+                background-color: #f0f8ff;
+                font-family: monospace;
+                text-align: center;
+                margin-top: 50px;
+            }
+            
+            input[type="file"] {
+                color: transparent;
+                width: auto;
+                position: fixed;
+                bottom: 9999px;
+                right: 9999px;
+            }
+            
+            button {
+                background-color: #ffee00;
+                padding: 15px 20px;
+                font-size: 1.2rem;
+                font-weight: bold;
+                border-radius: 30px;
+                border: none;
+                cursor: pointer;
+                transition: 0.15s ease;
+            }
+            
+            button:hover {
+                background-color: #ffc800;
+            }
+            
+            #Credits {
+                font-size: 20px;
+                color: #a5d4ff;
+                position: fixed;
+                bottom: -18px;
+            }
+            
+        </style>
+    </head>
+    <body>
+        
+        <button id="triggerButton">📂 Upload & Run HTML File</button>
+        
+        
+        <input type="file" id="hiddenFileInput" name="uploadedFile" accept="text/plain, text/html, application/zip, .txt, .html, .zip">
+        
+        <p id="Credits">Made By QuackDaDuck v1.3.2 dev of 1.4</p>
+        
+        <script>
+            document.getElementById("triggerButton").addEventListener("click", clickUpload);
+            
+            document.getElementById("hiddenFileInput").addEventListener("change", UponUpload);
+            
+            function clickUpload(event) {
+                document.getElementById("hiddenFileInput").click();
+            }
+
+            async function UponUpload(event) {
+                const file = event.target.files[0];
+                const data = await file.text();
+                const FileName = file.name;
+
+                if (file.name.endsWith(".zip")){
+                    console.log("is zip file")
+                    ZipFileHandler(file);
+                } else {
+                    DomEdit(data);
+                }
+            }
+
+            function ZipFileHandler(ZipFile) {
+                let zip = new JSZip();
+                let MainData = "N0nSENse";
+                let ToInjectDefault = JSON.parse(JSON.stringify(ToInject));
+
+                zip.loadAsync(ZipFile).then( async function(zip) {
+                    for (let file in zip.files) {
+                        if (file.toLowerCase() == "index.html") {
+                            MainData = await zip.files[file].async("text")
+                        } else if (file.toLowerCase().endsWith(".js")) {
+                            ToInject.Script.push(await zip.files[file].async("text"))
+                        } else if (file.toLowerCase().endsWith(".css")) {
+                            ToInject.Style.push(await zip.files[file].async("text"))
+                        }
+                    }
+
+                    if (MainData != "N0nSENse"){
+                        DomEdit(MainData)
+                    } else {
+                        alert("Invalid Zip File")
+                        ToInject = ToInjectDefault;
+                    }
+                })
+            }
+
+            function DomEdit(data) {
+                let FinalData = "";
+
+                for (let pointer = 0; pointer < ToInject.Script.length; pointer++) {FinalData += `\n<script>${ToInject.Script[pointer]}<\/script>`;}
+
+                for (let pointer = 0; pointer < ToInject.Style.length; pointer++) {FinalData += `\n<style>${ToInject.Style[pointer]}<\/style>`;}
+                
+                FinalData += data;
+                
+                console.log(FinalData);
+
+                document.open();
+                document.write(FinalData);
+                document.close();
+            }
+        </script>
+    </body>
+</html>
